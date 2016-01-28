@@ -1,0 +1,74 @@
+* Required
+#+begin_src emacs-lisp
+  (require 'haskell)
+#+end_src
+* UI
+General UI Enhancements.
+#+begin_src emacs-lisp
+  (setq org-src-fontify-natively t)
+  (fancy-battery-mode)
+  (display-time)
+  (setq ns-use-srgb-colorspace nil)
+  (setq-default powerline-default-separator 'slant)
+  (setq evil-move-cursor-back nil)
+  (setq neo-theme (quote arrow))
+  (setq ns-use-srgb-colorspace nil)
+  (global-evil-mc-mode)
+#+end_src
+* Keybindings
+#+begin_src emacs-lisp
+  (define-prefix-command '§-prefix)
+  (global-set-key (kbd "§") '§-prefix)
+  (bind-keys
+   ("C-x C-m" . helm-M-x)
+   ("C-x C-b" . ido-switch-buffer)
+   ("C-q" . delete-window)
+   ("s-n" . spacemacs/next-useful-buffer)
+   ("s-p" . spacemacs/previous-useful-buffer)
+   ("§ h" . custom/home)
+   ("§ c" . custom/configure)
+   )
+
+  (bind-keys
+   :map comint-mode-map
+   ("C-k" comint-previous-input)
+   ("C-j" comint-next-input)
+   )
+
+  (bind-keys
+   :map evil-normal-state-map
+   ("<escape>" . evil-search-highlight-persist-remove-all))
+
+  (bind-keys
+   :map org-mode-map
+   ("<s-return>" . org-insert-subheading))
+
+  (bind-keys
+   :map haskell-mode-map
+   ("C-c C-z" haskell-interactive-switch))
+#+end_src
+* Org Settings
+#+begin_src emacs-lisp
+  (setq org-src-window-setup 'current-window)
+  (custom-set-variables
+   '(org-src-window-setup 'current-window)
+   '(org-src-ask-before-returning-to-edit-buffer nil))
+#+end_src
+* Functions
+#+begin_src emacs-lisp
+  (defun custom/home ()
+    (interactive)
+    (switch-to-buffer "*spacemacs*"))
+
+  (defun custom/configure ()
+    (interactive)
+    (find-file "~/.spacemacs.d/settings.org"))
+
+  (defun custom/kill-buffer ()
+    (interactive)
+    (when (not (equal "*spacemacs*" (buffer-name)))
+      (kill-this-buffer)
+      (spacemacs/next-useful-buffer)))
+
+  (global-set-key [remap kill-this-buffer] 'custom/kill-buffer)
+#+end_src
