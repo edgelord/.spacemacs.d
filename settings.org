@@ -5,6 +5,7 @@
 * UI
 General UI Enhancements.
 #+begin_src emacs-lisp
+  (setq-default cursor-type 'bar) 
   (setq org-src-fontify-natively t)
   (fancy-battery-mode)
   (display-time)
@@ -14,6 +15,7 @@ General UI Enhancements.
   (setq neo-theme (quote arrow))
   (setq ns-use-srgb-colorspace nil)
   (global-evil-mc-mode)
+
 #+end_src
 * Keybindings
 #+begin_src emacs-lisp
@@ -47,6 +49,94 @@ General UI Enhancements.
    :map haskell-mode-map
    ("C-c C-z" haskell-interactive-switch))
 #+end_src
+
+#+begin_src emacs-lisp
+
+  (global-unset-key (kbd "s-t"))
+  (define-key comint-mode-map (kbd "s-p") 'comint-previous-input)
+  (define-key comint-mode-map (kbd "s-n") 'comint-next-input)
+  (define-key python-mode-map (kbd "C-c p") 'py-autopep8-buffer)
+  (add-hook 'shell-mode-hook 'my-shell-hook)
+  (define-key comint-mode-map (kbd "C-c s")'erase-buffer)
+  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+
+  (global-set-key (kbd "s-n") 'flycheck-next-error)
+  (global-set-key (kbd "s-p") 'flycheck-previous-error)
+  (global-set-key (kbd "ESC ESC") (lambda () (interactive) (message "Cancel")))
+  (global-set-key (kbd "<f5>") 'revert-buffer-no-confirm)
+  (global-set-key (kbd "C-a") 'smart-line-beginning)
+  (define-prefix-command 'my/exit)
+  (global-set-key (kbd "s-q") nil)
+  (global-set-key (kbd "s-q") 'my/exit)
+  (global-set-key (kbd "s-q s-q") 'kill-this-buffer)
+  (global-set-key (kbd "s-q s-r") 'exit-recursive-edit)
+  (global-set-key (kbd "s-i") 'sp-down-sexp)
+  (global-set-key (kbd "s-I") 'sp-backward-down-sexp)
+  (global-set-key (kbd "s-o") 'sp-up-sexp)
+  (global-set-key (kbd "s-O") 'sp-backward-up-sexp)
+  (global-set-key (kbd "s-d") 'sp-kill-sexp)
+  (global-set-key (kbd "s-f") 'sp-forward-sexp)
+  (global-set-key (kbd "s-b") 'sp-backward-sexp)
+  (global-set-key (kbd "s-(") '(lambda (&optional arg) (interactive "P") (sp-wrap-with-pair "(")))
+  (global-set-key (kbd "s-{") '(lambda (&optional arg) (interactive "P") (sp-wrap-with-pair "{")))
+  (global-set-key (kbd "s-[") '(lambda (&optional arg) (interactive "P") (sp-wrap-with-pair "[")))
+  (global-set-key (kbd "s-\"") '(lambda (&optional arg) (interactive "P") (sp-wrap-with-pair "\"")))
+  (global-set-key (kbd "s-2") 'sp-splice-sexp)
+  (global-set-key (kbd "s-@") 'sp-splice-sexp-killing-around)
+  (global-set-key (kbd "s-1") 'sp-splice-sexp-killing-backward)
+  (global-set-key (kbd "s-3") 'sp-splice-sexp-killing-forward)
+  (global-set-key (kbd "C-c C-k") 'copy-line)
+  (global-set-key (kbd "s-<") 'previous-buffer)
+  (global-set-key (kbd "s->") 'next-buffer)
+  (global-set-key (kbd "C-;")  'ace-jump-mode)
+  (require 'comint)
+  (define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
+  (define-key comint-mode-map (kbd "<down>") 'comint-next-input)
+  (global-set-key (kbd "C-c t") 'visit-term-buffer)
+  (global-set-key (kbd "C-(") 'sp-backward-slurp-sexp)
+  (global-set-key (kbd "C-)") 'sp-forward-slurp-sexp)
+  (global-set-key (kbd "C-{") 'sp-backward-barf-sexp)
+  (global-set-key (kbd "C-}") 'sp-backward-barf-sexp)
+    ;;; Nerd commenter
+  (global-set-key (kbd "M-;") 'evilnc-comment-or-uncomment-lines)
+  (global-set-key (kbd "C-c l") 'evilnc-quick-comment-or-uncomment-to-the-line)
+  (global-set-key (kbd "C-c c") 'evilnc-copy-and-comment-lines)
+  ;; (global-set-key (kbd "C-c p") 'evilnc-comment-or-uncomment-paragraphs)
+  (global-set-key (kbd "C-x C-m") 'helm-M-x)
+  (global-set-key (kbd "C-c g") 'magit-status)
+
+  (define-key company-active-map (kbd "C-n") 'company-select-next)
+  (define-key company-active-map (kbd "C-p") 'company-select-previous)
+  (setq primary-modes
+        '("shell-mode"
+          "inferior-python-mode"
+          "inferior-octave-mode"
+          "magit-mode"
+          "magit-status-mode"
+          "spacemacs-mode"))
+
+  (defun my-next-buffer (buff-func)
+    "next-buffer, only skip *Messages*"
+    (funcall buff-func)
+    (while (and (not (-contains? primary-modes (symbol-name major-mode)))
+                (= 42 (aref (buffer-name) 0)))
+      (funcall buff-func)))
+
+  (defun nxt ()
+    (interactive)
+    (my-next-buffer (function next-buffer)))
+
+  (defun prv ()
+    (interactive)
+    (my-next-buffer (function previous-buffer)))
+
+  (global-set-key [remap next-buffer] 'nxt)
+  (global-set-key [remap previous-buffer] 'prv)
+#+end_src
+
+#+RESULTS:
+: prv
+
 * Org Settings
 #+begin_src emacs-lisp
   (setq org-src-window-setup 'current-window)
@@ -56,6 +146,74 @@ General UI Enhancements.
 #+end_src
 * Functions
 #+begin_src emacs-lisp
+(defun smart-kill-line ()
+      "Kills line and fixes indentation"
+      (interactive)
+      (kill-line)
+      (indent-according-to-mode))
+
+    (defun smart-kill-whole-line ()
+      (interactive)
+      (kill-whole-line)
+      (beginning-of-line-text))
+
+    (global-set-key (kbd "C-k") 'smart-kill-line)
+    (global-set-key (kbd "C-S-k") 'smart-kill-whole-line)
+
+    (defun smart-line-beginning ()
+      "Move point to the beginning of text on the current line; if that is already
+      the current position of point, then move it to the beginning of the line."
+      (interactive)
+      (let ((pt (point)))
+        (beginning-of-line-text)
+        (when (eq pt (point))
+          (beginning-of-line))))
+
+    (defun smart-open-line ()
+      "Insert an empty line after the current line.
+       Position the cursor at its beginning, according to the current mode."
+      (interactive)
+      (move-end-of-line nil)
+      (newline-and-indent))
+
+    (defun smart-open-line-above ()
+      "Insert an empty line above the current line.
+      Position the cursor at it's beginning, according to the current mode."
+      (interactive)
+      (move-beginning-of-line nil)
+      (newline-and-indent)
+      (forward-line -1)
+      (indent-according-to-mode))
+
+    (defun py-open-line ()
+      "Insert an empty line after the current line.
+       Position the cursor at its beginning, according to the current mode."
+      (interactive)
+      (move-end-of-line nil)
+      (newline-and-indent))
+
+    (defun py-open-line-above ()
+      "Insert an empty line above the current line.
+      Position the cursor at it's beginning, according to the current mode."
+      (interactive)
+      (move-beginning-of-line nil)
+      (newline-and-indent)
+      (forward-line -1)
+      (indent-according-to-mode))
+
+    (dolist (command '(yank yank-pop))
+       (eval `(defadvice ,command (after indent-region activate)
+                (and (not current-prefix-arg)
+                     (member major-mode '(emacs-lisp-mode lisp-mode
+                                                          clojure-mode    scheme-mode
+                                                          haskell-mode    ruby-mode
+                                                          rspec-mode      python-mode
+                                                          c-mode          c++-mode
+                                                          objc-mode       latex-mode
+                                                          plain-tex-mode))
+                     (let ((mark-even-if-inactive transient-mark-mode))
+                       (indent-region (region-beginning) (region-end) nil))))))
+
   (defun custom/home ()
     (interactive)
     (switch-to-buffer "*spacemacs*"))
@@ -71,4 +229,12 @@ General UI Enhancements.
       (spacemacs/next-useful-buffer)))
 
   (global-set-key [remap kill-this-buffer] 'custom/kill-buffer)
+
+  (defun ews ()
+    (interactive)
+    (find-file "/ssh:akmishr2@remlnx.ews.illinois.edu:/home/akmishr2"))
+
+  (defun 241vm ()
+    (interactive)
+    (find-file "/ssh:akmishr2@remlnx.ews.illinois.edu|ssh:akmishr2@sp16-cs241-020.cs.illinois.edu:/"))
 #+end_src
