@@ -287,5 +287,3 @@ General UI Enhancements.
     (interactive)
     (find-file "/ssh:akmishr2@remlnx.ews.illinois.edu|ssh:akmishr2@sp16-cs241-020.cs.illinois.edu:/"))
 #+end_src
-* Variables
-(setq inhibit-x-resources t)
