@@ -8,8 +8,7 @@ General UI Enhancements.
 #+begin_src emacs-lisp
   (defun load-theme (frame)
     (select-frame frame)
-    (load-theme 'spacemacs-dark t))
-
+    (spacemacs/load-theme 'zenburn t))
   (when (daemonp)
     (add-hook 'after-make-frame-functions #'load-theme))
 
@@ -286,4 +285,8 @@ General UI Enhancements.
   (defun 241vm ()
     (interactive)
     (find-file "/ssh:akmishr2@remlnx.ews.illinois.edu|ssh:akmishr2@sp16-cs241-020.cs.illinois.edu:/"))
+#+end_src
+* Variables
+#+begin_src emacs-lisp
+  ;; (setq frame-title-format "%b")
 #+end_src
