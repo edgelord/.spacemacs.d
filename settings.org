@@ -1,11 +1,19 @@
 * Required
 #+begin_src emacs-lisp
   (require 'haskell)
+  (require 'company)
 #+end_src
 * UI
 General UI Enhancements.
 #+begin_src emacs-lisp
-  (setq-default cursor-type 'bar) 
+  (defun load-theme (frame)
+    (select-frame frame)
+    (load-theme 'spacemacs-dark t))
+
+  (when (daemonp)
+    (add-hook 'after-make-frame-functions #'load-theme))
+
+  (setq-default cursor-type 'bar)
   (setq org-src-fontify-natively t)
   (fancy-battery-mode)
   (display-time)
@@ -55,7 +63,7 @@ General UI Enhancements.
   (global-unset-key (kbd "s-t"))
   (define-key comint-mode-map (kbd "s-p") 'comint-previous-input)
   (define-key comint-mode-map (kbd "s-n") 'comint-next-input)
-  (define-key python-mode-map (kbd "C-c p") 'py-autopep8-buffer)
+  ;; (define-key python-mode-map (kbd "C-c p") 'py-autopep8-buffer)
   (add-hook 'shell-mode-hook 'my-shell-hook)
   (define-key comint-mode-map (kbd "C-c s")'erase-buffer)
   (global-set-key (kbd "M-y") 'helm-show-kill-ring)
@@ -146,73 +154,96 @@ General UI Enhancements.
 #+end_src
 * Functions
 #+begin_src emacs-lisp
-(defun smart-kill-line ()
-      "Kills line and fixes indentation"
-      (interactive)
-      (kill-line)
-      (indent-according-to-mode))
+  (defadvice ido-find-file (after find-file-sudo activate)
+    "Find file as root if necessary."
+    (unless (and buffer-file-name
+                 (file-writable-p buffer-file-name))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+(defadvice find-file (after find-file-sudo activate)
+    "Find file as root if necessary."
+    (unless (and buffer-file-name
+                 (file-writable-p buffer-file-name))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+  (defun visit-term-buffer ()
+    (interactive)
+    (call-process "termite" nil 0 nil "-d" default-directory))
 
-    (defun smart-kill-whole-line ()
-      (interactive)
-      (kill-whole-line)
-      (beginning-of-line-text))
+  (defun browser ()
+    (interactive)
+    (call-process "surf"))
 
-    (global-set-key (kbd "C-k") 'smart-kill-line)
-    (global-set-key (kbd "C-S-k") 'smart-kill-whole-line)
+  (defun ext-term ()
+    (interactive)
+    (shell-command (concat "xfce4-terminal --workdir"
+                           (file-name-directory (or load-file-name buffer-file-name)) 
+                           " 2>&1 > /dev/null & disown") nil nil))
+  (defun smart-kill-line ()
+    "Kills line and fixes indentation"
+    (interactive)
+    (kill-line)
+    (indent-according-to-mode))
 
-    (defun smart-line-beginning ()
-      "Move point to the beginning of text on the current line; if that is already
-      the current position of point, then move it to the beginning of the line."
-      (interactive)
-      (let ((pt (point)))
-        (beginning-of-line-text)
-        (when (eq pt (point))
-          (beginning-of-line))))
+  (defun smart-kill-whole-line ()
+    (interactive)
+    (kill-whole-line)
+    (beginning-of-line-text))
 
-    (defun smart-open-line ()
-      "Insert an empty line after the current line.
-       Position the cursor at its beginning, according to the current mode."
-      (interactive)
-      (move-end-of-line nil)
-      (newline-and-indent))
+  (global-set-key (kbd "C-k") 'smart-kill-line)
+  (global-set-key (kbd "C-S-k") 'smart-kill-whole-line)
 
-    (defun smart-open-line-above ()
-      "Insert an empty line above the current line.
-      Position the cursor at it's beginning, according to the current mode."
-      (interactive)
-      (move-beginning-of-line nil)
-      (newline-and-indent)
-      (forward-line -1)
-      (indent-according-to-mode))
+  (defun smart-line-beginning ()
+    "Move point to the beginning of text on the current line; if that is already
+        the current position of point, then move it to the beginning of the line."
+    (interactive)
+    (let ((pt (point)))
+      (beginning-of-line-text)
+      (when (eq pt (point))
+        (beginning-of-line))))
 
-    (defun py-open-line ()
-      "Insert an empty line after the current line.
-       Position the cursor at its beginning, according to the current mode."
-      (interactive)
-      (move-end-of-line nil)
-      (newline-and-indent))
+  (defun smart-open-line ()
+    "Insert an empty line after the current line.
+         Position the cursor at its beginning, according to the current mode."
+    (interactive)
+    (move-end-of-line nil)
+    (newline-and-indent))
 
-    (defun py-open-line-above ()
-      "Insert an empty line above the current line.
-      Position the cursor at it's beginning, according to the current mode."
-      (interactive)
-      (move-beginning-of-line nil)
-      (newline-and-indent)
-      (forward-line -1)
-      (indent-according-to-mode))
+  (defun smart-open-line-above ()
+    "Insert an empty line above the current line.
+        Position the cursor at it's beginning, according to the current mode."
+    (interactive)
+    (move-beginning-of-line nil)
+    (newline-and-indent)
+    (forward-line -1)
+    (indent-according-to-mode))
 
-    (dolist (command '(yank yank-pop))
-       (eval `(defadvice ,command (after indent-region activate)
-                (and (not current-prefix-arg)
-                     (member major-mode '(emacs-lisp-mode lisp-mode
-                                                          clojure-mode    scheme-mode
-                                                          haskell-mode    ruby-mode
-                                                          rspec-mode      python-mode
-                                                          c-mode          c++-mode
-                                                          objc-mode       latex-mode
-                                                          plain-tex-mode))
-                     (let ((mark-even-if-inactive transient-mark-mode))
-                       (indent-region (region-beginning) (region-end) nil))))))
+  (defun py-open-line ()
+    "Insert an empty line after the current line.
+         Position the cursor at its beginning, according to the current mode."
+    (interactive)
+    (move-end-of-line nil)
+    (newline-and-indent))
+
+  (defun py-open-line-above ()
+    "Insert an empty line above the current line.
+        Position the cursor at it's beginning, according to the current mode."
+    (interactive)
+    (move-beginning-of-line nil)
+    (newline-and-indent)
+    (forward-line -1)
+    (indent-according-to-mode))
+
+  (dolist (command '(yank yank-pop))
+    (eval `(defadvice ,command (after indent-region activate)
+             (and (not current-prefix-arg)
+                  (member major-mode '(emacs-lisp-mode lisp-mode
+                                                       clojure-mode    scheme-mode
+                                                       haskell-mode    ruby-mode
+                                                       rspec-mode      python-mode
+                                                       c-mode          c++-mode
+                                                       objc-mode       latex-mode
+                                                       plain-tex-mode))
+                  (let ((mark-even-if-inactive transient-mark-mode))
+                    (indent-region (region-beginning) (region-end) nil))))))
 
   (defun custom/home ()
     (interactive)
@@ -221,6 +252,24 @@ General UI Enhancements.
   (defun custom/configure ()
     (interactive)
     (find-file "~/.spacemacs.d/settings.org"))
+
+  (defun custom/configure-emacs ()
+    (interactive)
+    (find-file "~/.spacemacs.d/settings.org"))
+
+  (defun custom/configure-xmonad ()
+    (interactive)
+    (find-file "~/.xmonad/xmonad.hs"))
+
+  (defun custom/configure-nix-local ()
+    (interactive)
+    (find-file "~/.nixpkgs/config.nix"))
+
+  (defun custom/configure-nix-global ()
+    (interactive)
+    (ido-find-file "/etc/nixos/configuration.nix"))
+
+
 
   (defun custom/kill-buffer ()
     (interactive)
@@ -238,3 +287,5 @@ General UI Enhancements.
     (interactive)
     (find-file "/ssh:akmishr2@remlnx.ews.illinois.edu|ssh:akmishr2@sp16-cs241-020.cs.illinois.edu:/"))
 #+end_src
+* Variables
+(setq inhibit-x-resources t)
